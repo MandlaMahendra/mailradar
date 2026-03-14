@@ -12,7 +12,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get('https://mailradar.onrender.com/api/settings');
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/settings`);
         if (res.data) {
           setGoogleClientId(res.data.googleClientId || '');
           setGoogleClientSecret(res.data.googleClientSecret || '');
@@ -31,7 +31,7 @@ const Settings = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await axios.post('https://mailradar.onrender.com/api/settings', { googleClientId, googleClientSecret });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/settings`, { googleClientId, googleClientSecret });
       setSaved(true);
       setIsLocked(true);
       setTimeout(() => setSaved(false), 3000);

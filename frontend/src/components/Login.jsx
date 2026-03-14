@@ -7,7 +7,7 @@ const Login = ({ onOpenSetup }) => {
   React.useEffect(() => {
     const checkConfig = async () => {
       try {
-        const res = await fetch('https://mailradar.onrender.com/api/settings');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
         const data = await res.json();
         if (!data.googleClientId || !data.googleClientSecret) {
           setIsConfigured(false);
@@ -21,7 +21,7 @@ const Login = ({ onOpenSetup }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('https://mailradar.onrender.com/api/auth/url');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/url`);
       const data = await response.json();
       if (data.error) {
         alert(data.error + '. Please configure them in the Settings (use the Sidebar after bypass or check .env).');

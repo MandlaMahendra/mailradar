@@ -41,8 +41,8 @@ router.get('/callback', async (req, res) => {
             { upsert: true, returnDocument: 'after' }
         );
         
-        // Redirect to frontend with tokens in URL (not for production, but okay for MVP demo)
-        const frontendUrl = `http://localhost:5173/?auth_success=true&access_token=${tokens.access_token}`;
+        // Redirect to frontend with tokens in URL
+        const frontendUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?auth_success=true&access_token=${tokens.access_token}`;
         res.redirect(frontendUrl);
 
         

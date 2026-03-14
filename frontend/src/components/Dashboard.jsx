@@ -20,7 +20,7 @@ const Dashboard = ({ token }) => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/analytics', {
+      const res = await axios.get('https://mailradar.onrender.com/api/analytics', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(res.data || {});

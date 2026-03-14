@@ -6,7 +6,7 @@ const getClient = async () => {
     
     const clientId = process.env.GOOGLE_CLIENT_ID || settings?.googleClientId;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET || settings?.googleClientSecret;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5000/api/auth/callback';
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'https://mailradar.onrender.com/api/auth/callback';
 
     if (!clientId || !clientSecret) {
         throw new Error('Google OAuth Credentials not configured');

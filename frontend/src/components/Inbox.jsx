@@ -16,7 +16,7 @@ const Inbox = ({ token }) => {
   const fetchEmails = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/gmail/inbox', {
+      const res = await axios.get('https://mailradar.onrender.com/api/gmail/inbox', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEmails(res.data || []);
@@ -30,7 +30,7 @@ const Inbox = ({ token }) => {
   const handleSend = async () => {
     setSending(true);
     try {
-      await axios.post('http://localhost:5000/api/gmail/reply', {
+      await axios.post('https://mailradar.onrender.com/api/gmail/reply', {
         to: selectedEmail.from.match(/<(.+)>/)?.[1] || selectedEmail.from,
         subject: `Re: ${selectedEmail.subject}`,
         body: reply.body,

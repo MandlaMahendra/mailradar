@@ -12,7 +12,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/settings');
+        const res = await axios.get('https://mailradar.onrender.com/api/settings');
         if (res.data) {
           setGoogleClientId(res.data.googleClientId || '');
           setGoogleClientSecret(res.data.googleClientSecret || '');
@@ -31,7 +31,7 @@ const Settings = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/settings', { googleClientId, googleClientSecret });
+      await axios.post('https://mailradar.onrender.com/api/settings', { googleClientId, googleClientSecret });
       setSaved(true);
       setIsLocked(true);
       setTimeout(() => setSaved(false), 3000);
@@ -106,7 +106,7 @@ const Settings = () => {
                 <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Cloud Console</a>.</li>
                 <li>Create a project and enable the <strong>Gmail API</strong>.</li>
                 <li>In "Credentials", create an <strong>OAuth Client ID</strong> (Web App).</li>
-                <li>Add <code>http://localhost:5000/api/auth/callback</code> to "Authorized redirect URIs".</li>
+                <li>Add <code>https://mailradar.onrender.com/api/auth/callback</code> to "Authorized redirect URIs".</li>
                 <li>Copy and paste the ID and Secret below.</li>
               </ol>
             </div>

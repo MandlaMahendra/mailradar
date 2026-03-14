@@ -6,9 +6,15 @@ const Login = ({ onOpenSetup }) => {
 
   React.useEffect(() => {
     const checkConfig = async () => {
+      const apiUrl = import.meta.env.VITE_API_URL;
+      if (!apiUrl) {
+        console.error('VITE_API_URL is not defined! Check Vercel environment variables.');
+        return;
+      }
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/settings`);
+        const res = await fetch(`${apiUrl}/api/settings`);
         const data = await res.json();
+        // ...
         if (!data.googleClientId || !data.googleClientSecret) {
           setIsConfigured(false);
         }
@@ -20,17 +26,22 @@ const Login = ({ onOpenSetup }) => {
   }, []);
 
   const handleLogin = async () => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+      alert('Error: VITE_API_URL is missing. Please set it in Vercel settings.');
+      return;
+    }
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/url`);
+      const response = await fetch(`${apiUrl}/api/auth/url`);
       const data = await response.json();
       if (data.error) {
-        alert(data.error + '. Please configure them in the Settings (use the Sidebar after bypass or check .env).');
+        alert(data.error + '. Please configure them in the Settings.');
         return;
       }
       window.location.href = data.url;
     } catch (err) {
       console.error('Failed to get auth URL', err);
-      alert('Failed to connect to backend server. Please ensure the backend is running on port 5000.');
+      alert(`Connection Failed: Could not reach backend at ${apiUrl}. Ensure your Render server is awake and the URL is correct.`);
     }
   };
 

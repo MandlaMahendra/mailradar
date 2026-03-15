@@ -13,6 +13,7 @@ const Inbox = ({ token }) => {
   const [isReplyMode, setIsReplyMode] = useState(false);
   const [nextPageToken, setNextPageToken] = useState(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (token) fetchEmails();
@@ -21,6 +22,7 @@ const Inbox = ({ token }) => {
   const fetchEmails = async () => {
     setLoading(true);
     setNextPageToken(null);
+    setError(null);
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/gmail/inbox`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -29,6 +31,7 @@ const Inbox = ({ token }) => {
       setNextPageToken(res.data.nextPageToken);
     } catch (err) {
       console.error('Failed to fetch emails', err);
+      setError('Connection Failed: Could not reach backend. If you are on mobile, ensure VITE_API_URL is set to your computer\'s local IP.');
     } finally {
       setLoading(false);
     }
@@ -123,6 +126,12 @@ const Inbox = ({ token }) => {
           <div className="p-12 text-center text-muted-foreground space-y-4">
             <Loader2 className="animate-spin mx-auto text-accent" size={32} />
             <p className="animate-pulse">Scanning your inbox...</p>
+          </div>
+        ) : error ? (
+          <div className="p-12 text-center text-accent bg-accent/5 rounded-xl border border-accent/20 m-6">
+            <RefreshCw size={48} className="mx-auto mb-4 opacity-50" />
+            <p className="font-bold text-lg mb-2">{error}</p>
+            <button onClick={fetchEmails} className="btn-primary mt-2">Retry Connection</button>
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">

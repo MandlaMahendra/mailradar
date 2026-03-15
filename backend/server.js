@@ -23,20 +23,7 @@ const Settings = require('./models/Settings');
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/gmail', require('./routes/gmail'));
 
-// Analytics (Updated for Gmail)
-app.get('/api/analytics', async (req, res) => {
-    res.json({
-        total: 1240,
-        receivedToday: 42,
-        topSenders: [
-            { name: 'Google Search Console', count: 12 },
-            { name: 'GitHub', count: 8 },
-            { name: 'Vercel', count: 5 }
-        ],
-        recent: [],
-        perKeyword: []
-    });
-});
+// Analytics has been moved to routes/gmail.js
 
 // Settings
 app.get('/api/settings', async (req, res) => {

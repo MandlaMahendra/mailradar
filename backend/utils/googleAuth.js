@@ -1,17 +1,16 @@
 const { google } = require('googleapis');
 
 const getClient = async () => {
-    const Settings = require('../models/Settings');
-    const settings = await Settings.findOne();
-    
-    const clientId = process.env.GOOGLE_CLIENT_ID || settings?.googleClientId;
-    const clientSecret = process.env.GOOGLE_CLIENT_SECRET || settings?.googleClientSecret;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'https://mailradar.onrender.com/api/auth/callback';
+    // Prioritize .env variables to avoid confusion with database settings
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const redirectUri = (process.env.GOOGLE_REDIRECT_URI || 'http://localhost:5000/api/auth/callback').trim();
 
     if (!clientId || !clientSecret) {
-        throw new Error('Google OAuth Credentials not configured');
+        throw new Error('Google OAuth Credentials missing in .env file');
     }
 
+    console.log('Final OAuth Config:', { clientId: clientId.substring(0, 10) + '...', redirectUri });
     return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 };
 

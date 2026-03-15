@@ -5,18 +5,31 @@ const { getClient } = require('../utils/googleAuth');
 
 // Fetch Inbox
 router.get('/inbox', async (req, res) => {
+    console.log('GET /inbox request received');
     const token = req.headers.authorization?.split(' ')[1];
+    const { pageToken } = req.query;
     if (!token) return res.status(401).json({ error: 'Missing token' });
 
     try {
         const oauth2Client = await getClient();
         oauth2Client.setCredentials({ access_token: token });
         const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        
+        const year = sixMonthsAgo.getFullYear();
+        const month = String(sixMonthsAgo.getMonth() + 1).padStart(2, '0');
+        const day = String(sixMonthsAgo.getDate()).padStart(2, '0');
+        const dateQuery = `after:${year}/${month}/${day}`;
+        console.log('Inbox Fetch - Date Query:', dateQuery);
+
         const response = await gmail.users.messages.list({
             userId: 'me',
-            maxResults: 20,
-            q: 'label:INBOX'
+            maxResults: 50,
+            q: dateQuery,
+            pageToken: pageToken
         });
+        console.log('Inbox Fetch - Messages found:', response.data.messages?.length || 0);
 
         const messages = await Promise.all(
             (response.data.messages || []).map(async (msg) => {
@@ -41,7 +54,10 @@ router.get('/inbox', async (req, res) => {
             })
         );
 
-        res.json(messages);
+        res.json({
+            messages,
+            nextPageToken: response.data.nextPageToken
+        });
     } catch (err) {
         console.error('Fetch inbox error:', err);
         res.status(500).json({ error: 'Failed to fetch inbox' });
@@ -86,6 +102,81 @@ router.post('/reply', async (req, res) => {
     } catch (err) {
         console.error('Send reply error:', err);
         res.status(500).json({ error: 'Failed to send email' });
+    }
+});
+
+// Fetch Analytics
+router.get('/analytics', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Missing token' });
+
+    try {
+        const oauth2Client = await getClient();
+        oauth2Client.setCredentials({ access_token: token });
+        const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+        // 1. Get total count (from profile)
+        const profile = await gmail.users.getProfile({ userId: 'me' });
+        
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const year = sixMonthsAgo.getFullYear();
+        const month = String(sixMonthsAgo.getMonth() + 1).padStart(2, '0');
+        const day = String(sixMonthsAgo.getDate()).padStart(2, '0');
+        const dateQuery = `after:${year}/${month}/${day}`;
+        console.log('Analytics Fetch - Date Query:', dateQuery);
+
+        // 2. Fetch recent messages for more detailed stats
+        const response = await gmail.users.messages.list({
+            userId: 'me',
+            maxResults: 500,
+            q: dateQuery
+        });
+
+        const messages = await Promise.all(
+            (response.data.messages || []).map(async (msg) => {
+                const detail = await gmail.users.messages.get({
+                    userId: 'me',
+                    id: msg.id,
+                    format: 'metadata',
+                    metadataHeaders: ['From', 'Subject', 'Date']
+                });
+                const headers = detail.data.payload.headers;
+                return {
+                    from: headers.find(h => h.name === 'From')?.value || 'Unknown',
+                    subject: headers.find(h => h.name === 'Subject')?.value || '(No Subject)',
+                    date: headers.find(h => h.name === 'Date')?.value
+                };
+            })
+        );
+
+        // 3. Process stats
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        
+        const receivedToday = messages.filter(m => new Date(m.date).getTime() >= startOfDay).length;
+        
+        const senderCounts = {};
+        messages.forEach(m => {
+            const name = m.from.split('<')[0].trim().replace(/"/g, '') || m.from;
+            senderCounts[name] = (senderCounts[name] || 0) + 1;
+        });
+
+        const topSenders = Object.entries(senderCounts)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        res.json({
+            total: profile.data.messagesTotal,
+            receivedToday,
+            topSenders,
+            recent: messages.slice(0, 5),
+            perKeyword: []
+        });
+    } catch (err) {
+        console.error('Fetch analytics error:', err);
+        res.status(500).json({ error: 'Failed to fetch analytics' });
     }
 });
 

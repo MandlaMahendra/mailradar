@@ -12,6 +12,7 @@ const Dashboard = ({ token }) => {
     recent: []
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (token) fetchStats();
@@ -20,16 +21,28 @@ const Dashboard = ({ token }) => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/analytics`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/gmail/analytics`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(res.data || {});
+      setError(null);
     } catch (err) {
       console.error('Failed to fetch stats', err);
+      setError('Could not load intelligence data. Check backend connection.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="p-12 text-center text-accent bg-accent/10 rounded-xl border border-accent/20">
+        <Mail className="mx-auto mb-4" size={48} />
+        <p className="font-bold">{error}</p>
+        <button onClick={fetchStats} className="btn-primary mt-4 py-2 px-6 text-sm">Retry Analysis</button>
+      </div>
+    );
+  }
 
   if (loading && !stats.total) {
     return (
@@ -48,20 +61,20 @@ const Dashboard = ({ token }) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { label: 'Total Messages', value: stats?.total || 0, icon: Mail, color: 'text-blue-500' },
           { label: 'Received Today', value: stats?.receivedToday || 0, icon: Clock, color: 'text-green-500' },
           { label: 'Active Threads', value: (stats?.recent || []).length, icon: CheckCircle, color: 'text-yellow-500' },
           { label: 'Top Senders', value: (stats?.topSenders || []).length, icon: Search, color: 'text-purple-500' },
         ].map((stat, i) => (
-          <div key={i} className="card flex items-center justify-between">
+          <div key={i} className="card flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <h3 className="text-2xl font-bold mt-1">{stat.value}</h3>
+              <p className="text-[10px] md:text-sm text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+              <h3 className="text-xl md:text-2xl font-bold mt-1">{stat.value}</h3>
             </div>
-            <div className={`p-3 rounded-xl bg-white/5 ${stat.color}`}>
-              <stat.icon size={24} />
+            <div className={`p-2 md:p-3 rounded-xl bg-white/5 ${stat.color} flex-shrink-0`}>
+              <stat.icon size={20} className="md:w-6 md:h-6" />
             </div>
           </div>
         ))}

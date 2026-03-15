@@ -106,7 +106,8 @@ const Settings = () => {
                 <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer" className="text-accent hover:underline">Google Cloud Console</a>.</li>
                 <li>Create a project and enable the <strong>Gmail API</strong>.</li>
                 <li>In "Credentials", create an <strong>OAuth Client ID</strong> (Web App).</li>
-                <li>Add <code>https://mailradar.onrender.com/api/auth/callback</code> to "Authorized redirect URIs".</li>
+                <li>Add <code>http://localhost:5000/api/auth/callback</code> to "Authorized redirect URIs".</li>
+                <li>Add <code>http://localhost:5173</code> to "Authorized JavaScript Origins".</li>
                 <li>Copy and paste the ID and Secret below.</li>
               </ol>
             </div>

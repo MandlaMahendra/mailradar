@@ -135,36 +135,79 @@ const Inbox = ({ token }) => {
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[600px]">
-              <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02]">
-                <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider">From</th>
-                <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider">Subject / Snippet</th>
-                <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider text-center">Date</th>
-                <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-white/10 bg-white/[0.02]">
+                    <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider">From</th>
+                    <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider">Subject / Snippet</th>
+                    <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider text-center">Date</th>
+                    <th className="px-6 py-4 font-semibold text-sm text-muted-foreground uppercase tracking-wider text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredEmails.map((email) => (
+                    <tr 
+                      key={email?.id || Math.random()} 
+                      className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
+                      onClick={() => {
+                        setSelectedEmail(email);
+                        setIsReplyMode(false);
+                      }}
+                    >
+                      <td className="px-6 py-4 text-sm font-medium max-w-[200px] truncate">{email?.from || 'Unknown'}</td>
+                      <td className="px-6 py-4 text-sm">
+                        <p className="font-semibold text-white truncate max-w-md group-hover:text-accent transition-colors">
+                          {email?.subject || '(No Subject)'}
+                        </p>
+                        <p className="text-muted-foreground truncate max-w-md text-xs mt-1">{email?.snippet}</p>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground whitespace-nowrap text-center">
+                        {email?.date ? new Date(email.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEmail(email);
+                            setIsReplyMode(true);
+                            setReply({ subject: `Re: ${email.subject}`, body: '' });
+                          }}
+                          className="p-2.5 rounded-xl hover:bg-accent/20 text-accent opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-90"
+                          title="Reply"
+                        >
+                          <Send size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-white/10">
               {filteredEmails.map((email) => (
-                <tr 
+                <div 
                   key={email?.id || Math.random()} 
-                  className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
+                  className="p-4 hover:bg-white/[0.03] active:bg-white/[0.05] transition-colors space-y-3 cursor-pointer"
                   onClick={() => {
                     setSelectedEmail(email);
                     setIsReplyMode(false);
                   }}
                 >
-                  <td className="px-6 py-4 text-sm font-medium max-w-[200px] truncate">{email?.from || 'Unknown'}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <p className="font-semibold text-white truncate max-w-md group-hover:text-accent transition-colors">
-                      {email?.subject || '(No Subject)'}
-                    </p>
-                    <p className="text-muted-foreground truncate max-w-md text-xs mt-1">{email?.snippet}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground whitespace-nowrap text-center">
-                    {email?.date ? new Date(email.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '-'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-accent truncate">{email?.from || 'Unknown'}</p>
+                      <p className="text-sm font-bold text-white mt-1 leading-tight">{email?.subject || '(No Subject)'}</p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap bg-white/5 px-2 py-1 rounded-md">
+                      {email?.date ? new Date(email.date).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '-'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{email?.snippet}</p>
+                  <div className="flex justify-end">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -172,48 +215,47 @@ const Inbox = ({ token }) => {
                         setIsReplyMode(true);
                         setReply({ subject: `Re: ${email.subject}`, body: '' });
                       }}
-                      className="p-2.5 rounded-xl hover:bg-accent/20 text-accent opacity-0 group-hover:opacity-100 transition-all hover:scale-110 active:scale-90"
-                      title="Reply"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent/10 text-accent text-xs font-bold active:scale-95 transition-all"
                     >
-                      <Send size={18} />
+                      <Send size={14} />
+                      Reply
                     </button>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-              {filteredEmails.length === 0 && !loading && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-16 text-center text-muted-foreground">
-                    <div className="flex flex-col items-center gap-3">
-                      <Search size={32} className="opacity-20" />
-                      <p>{searchQuery ? `No emails matching "${searchQuery}"` : "Your inbox is empty or we couldn't fetch messages."}</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          {nextPageToken && (
-            <div className="p-6 border-t border-white/5 bg-white/[0.01] flex justify-center">
-              <button 
-                onClick={loadMoreEmails}
-                disabled={loadingMore}
-                className="btn-primary w-full max-w-xs flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white transition-all"
-              >
-                {loadingMore ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    <span>Loading more...</span>
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw size={18} />
-                    <span>Load More Emails</span>
-                  </>
-                )}
-              </button>
             </div>
-          )}
-        </div>
+
+            {filteredEmails.length === 0 && !loading && (
+              <div className="px-6 py-16 text-center text-muted-foreground">
+                <div className="flex flex-col items-center gap-3">
+                  <Search size={32} className="opacity-20" />
+                  <p>{searchQuery ? `No emails matching "${searchQuery}"` : "Your inbox is empty or we couldn't fetch messages."}</p>
+                </div>
+              </div>
+            )}
+
+            {nextPageToken && (
+              <div className="p-6 border-t border-white/5 bg-white/[0.01] flex justify-center">
+                <button 
+                  onClick={loadMoreEmails}
+                  disabled={loadingMore}
+                  className="btn-primary w-full max-w-xs flex items-center justify-center gap-2 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white transition-all"
+                >
+                  {loadingMore ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      <span>Loading more...</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={18} />
+                      <span>Load More Emails</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
       )}
     </div>
 
